@@ -24,7 +24,7 @@
 	</head>
 	<body template="window">
 		This is a sample.<br /><br />
-		<button class="clickable" onclick="bc_message'">My Game</button><br /><br />
+		<button>My Game</button><br /><br />
 		<form name="xxx" style="display:block;">
 			<input onclick="showKeys" type="text" size="15" value="name" name="name1" /><br />
 			<input onclick="showKeys" type="password" size="15" value="password" name="password" /><br />
@@ -34,7 +34,7 @@
 			<input type="radio" name="radioB" />B<br />
 			<input type="checkbox" name="check1" />C<br />
 			<input type="checkbox" name="check1" />C<br />
-      <input type="submit" />
+			<input type="submit" />
 		</form><br /><br />
 	</body>
 </rml>
