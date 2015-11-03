@@ -1,0 +1,28 @@
+library
+{
+	".,libRocketMarmalade"
+}
+
+includepaths
+{
+	./Source
+}
+
+defines
+{
+    ROCKET_STATIC_LIB
+}
+
+files
+{
+	[Source]
+	(Source)
+	MarmaladeEvent.h
+	MarmaladeEventListenerInstancer.h
+	MarmaladeInput.h
+	MarmaladeRenderInterfaceOpenGL.h
+	MarmaladeSystemInterface.h
+}
+
+subproject ./Dependencies/librocket/Build/marmalade/librocket
+subproject iwgx

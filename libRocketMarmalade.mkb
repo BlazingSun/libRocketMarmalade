@@ -1,0 +1,10 @@
+option lib
+
+subproject libRocketMarmaladeSource
+subproject iwgx
+
+options 
+{ 
+	optimise-speed
+	enable-exceptions
+}

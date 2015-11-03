@@ -1,0 +1,37 @@
+includepaths
+{
+    ./Source
+}
+
+commands
+{
+	download_librocket.py
+}
+
+library
+{
+	".,libRocketMarmalade"
+}
+
+defines
+{
+    ROCKET_STATIC_LIB
+}
+
+files
+{
+	[Source]
+	(Source)
+	MarmaladeEvent.cpp
+	MarmaladeEvent.h
+	MarmaladeEventListenerInstancer.cpp
+	MarmaladeEventListenerInstancer.h
+	MarmaladeInput.cpp
+	MarmaladeInput.h
+	MarmaladeRenderInterfaceOpenGL.cpp
+	MarmaladeRenderInterfaceOpenGL.h
+	MarmaladeSystemInterface.cpp
+	MarmaladeSystemInterface.h
+}
+
+subproject ./Dependencies/librocket/Build/marmalade/librocket

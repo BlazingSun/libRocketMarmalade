@@ -1,0 +1,17 @@
+files
+{
+	[Source]
+	(.)
+	test.cpp
+}
+
+includepaths
+{
+	.
+}
+
+subprojects
+{
+	libRocketMarmalade
+    iwgx
+}
