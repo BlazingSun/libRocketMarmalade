@@ -5,7 +5,7 @@ includepaths
 
 commands
 {
-	download_librocket.py
+	dependencies.py
 }
 
 library
