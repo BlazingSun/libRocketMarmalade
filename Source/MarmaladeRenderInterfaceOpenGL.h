@@ -5,6 +5,10 @@
 #include <IwTexture.h>
 #include <IwList.h>
 
+#define VERTICES_BATCH_SIZE 4096
+#define INDICES_BATCH_SIZE 8192
+#define TEXTURE_FORMAT CIwImage::ABGR_8888
+
 /**
 	Low level OpenGL render interface for Rocket
  */
@@ -37,10 +41,24 @@ public:
 	/// Called by Rocket when a loaded texture is no longer required.
 	virtual void ReleaseTexture(Rocket::Core::TextureHandle texture_handle);
 
+    ///Flush all outstanding geometry
+    void Flush();
+
 protected:
-	CIwList<CIwTexture*> _textures;
+    bool flushIfNeeded(CIwTexture* texture, uint32 verticesCount, uint32 indicesCount);
+    void newMaterial(CIwTexture* texture);
+
+    CIwList<CIwTexture*> _textures;
 	CIwRect32 _scissors;
-  bool _enableScissors;
+    bool _enableScissors;
+    CIwFVec2 uvs[VERTICES_BATCH_SIZE];
+    CIwSVec2 verts[VERTICES_BATCH_SIZE];
+    CIwColour colors[VERTICES_BATCH_SIZE];
+    uint16 indices_stream[INDICES_BATCH_SIZE];
+    int32 verticesCount;
+    uint16 indicesCount;
+    CIwTexture* currentTexture;
+    CIwMaterial* mat;
 };
 
 #endif

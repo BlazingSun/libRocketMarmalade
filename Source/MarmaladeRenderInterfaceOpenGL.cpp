@@ -5,51 +5,72 @@
 MarmaladeRenderInterfaceOpenGL::MarmaladeRenderInterfaceOpenGL()
   : _enableScissors(false)
 {
+    verticesCount = 0;
+    indicesCount = 0;
+    newMaterial(NULL);
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
 void MarmaladeRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
 {
-	// uvs + verts + colors
-	CIwFVec2 *uvs = texture ? IW_GX_ALLOC(CIwFVec2, num_vertices) : NULL;
-	CIwSVec2 *verts = IW_GX_ALLOC(CIwSVec2, num_vertices);
-	CIwColour *colors = IW_GX_ALLOC(CIwColour, num_vertices);
+    CIwTexture* tex = NULL;
+    if (texture)
+        tex = _textures.element_at(texture - 1);
+    flushIfNeeded(tex, num_vertices, num_indices);
+
+    //indices
+    for (int i = 0; i < num_indices; ++i){
+        indices_stream[indicesCount] = (uint16)indices[i] + verticesCount;
+        indicesCount++;
+    }
+
+    //vertices
 	for (int i = 0; i < num_vertices; ++i) {
 		if (texture) {
-			uvs[i].x = vertices[i].tex_coord.x;
-			uvs[i].y = vertices[i].tex_coord.y;
+            uvs[verticesCount].x = vertices[i].tex_coord.x;
+            uvs[verticesCount].y = vertices[i].tex_coord.y;
 		}
 
-		verts[i].x = (int)((vertices[i].position.x + translation.x)*8.f);
-		verts[i].y = (int)((vertices[i].position.y + translation.y)*8.f);
+        verts[verticesCount].x = (int)((vertices[i].position.x + translation.x)*8.f);
+        verts[verticesCount].y = (int)((vertices[i].position.y + translation.y)*8.f);
 
-		colors[i].r = vertices[i].colour.red;
-		colors[i].g = vertices[i].colour.green;
-		colors[i].b = vertices[i].colour.blue;
-		colors[i].a = vertices[i].colour.alpha;
+        colors[verticesCount].r = vertices[i].colour.red;
+        colors[verticesCount].g = vertices[i].colour.green;
+        colors[verticesCount].b = vertices[i].colour.blue;
+        colors[verticesCount].a = vertices[i].colour.alpha;
+        verticesCount ++;
 	}
+}
 
-	// indices
-	uint16 *indices_stream = IW_GX_ALLOC(uint16, num_indices);
-	for (int i = 0; i < num_indices; ++i)
-		indices_stream[i] = (uint16)indices[i];
+void MarmaladeRenderInterfaceOpenGL::Flush()
+{
+    IwGxSetUVStream(uvs);
+    IwGxSetVertStreamScreenSpaceSubPixel(verts, verticesCount);
+    IwGxSetColStream(colors, verticesCount);
+    IwGxSetNormStream(NULL);
+    IwGxDrawPrims(IW_GX_TRI_LIST, indices_stream, indicesCount);
+    verticesCount = 0;
+    indicesCount = 0;
+}
 
-	CIwMaterial* mat = IW_GX_ALLOC_MATERIAL();
-	if (texture) {
-		CIwTexture* tex = _textures.element_at(texture-1);
-		mat->SetTexture(tex);
-	} else {
-		mat->SetTexture(NULL);
-	}
-	mat->SetDepthWriteMode(CIwMaterial::DEPTH_WRITE_DISABLED);
-	mat->SetAlphaMode(CIwMaterial::ALPHA_BLEND);
-	IwGxSetMaterial(mat);		// can be cached to improve performance
+bool MarmaladeRenderInterfaceOpenGL::flushIfNeeded(CIwTexture* texture, uint32 verticesCount, uint32 indicesCount)
+{
+    if ((currentTexture != texture) || verticesCount + this->verticesCount >= VERTICES_BATCH_SIZE || indicesCount + this->indicesCount >= INDICES_BATCH_SIZE){
+        Flush();
+        newMaterial(texture);
+        return true;
+    }
+    return false;
+}
 
-	IwGxSetUVStream(uvs);
-	IwGxSetVertStreamScreenSpaceSubPixel(verts, num_vertices);
-	IwGxSetColStream(colors, num_vertices);
-	IwGxSetNormStream(NULL);
-	IwGxDrawPrims(IW_GX_TRI_LIST, indices_stream, num_indices);
+void MarmaladeRenderInterfaceOpenGL::newMaterial(CIwTexture* texture)
+{
+    CIwMaterial* mat = IW_GX_ALLOC_MATERIAL();
+    mat->SetDepthWriteMode(CIwMaterial::DEPTH_WRITE_DISABLED);
+    mat->SetAlphaMode(CIwMaterial::ALPHA_BLEND);
+    if (texture) mat->SetTexture(texture);
+    IwGxSetMaterial(mat);
+    currentTexture = texture;
 }
 
 Rocket::Core::CompiledGeometryHandle MarmaladeRenderInterfaceOpenGL::CompileGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture)
@@ -85,8 +106,8 @@ void MarmaladeRenderInterfaceOpenGL::SetScissorRegion(int x, int y, int width, i
 bool MarmaladeRenderInterfaceOpenGL::LoadTexture(Rocket::Core::TextureHandle& texture_handle, Rocket::Core::Vector2i& texture_dimensions, const Rocket::Core::String& source)
 {
 	CIwTexture *s_Texture = new CIwTexture;
-	s_Texture->SetFormatHW(CIwImage::RGBA_8888);
-	s_Texture->SetFormatSW(CIwImage::RGBA_8888);
+    s_Texture->SetFormatHW(TEXTURE_FORMAT);
+    s_Texture->SetFormatSW(TEXTURE_FORMAT);
 	s_Texture->LoadFromFile(source.CString());
 	s_Texture->Upload();
 
@@ -103,8 +124,8 @@ bool MarmaladeRenderInterfaceOpenGL::LoadTexture(Rocket::Core::TextureHandle& te
 bool MarmaladeRenderInterfaceOpenGL::GenerateTexture(Rocket::Core::TextureHandle& texture_handle, const Rocket::Core::byte* source, const Rocket::Core::Vector2i& source_dimensions)
 {
 	CIwTexture *s_Texture = new CIwTexture;
-	s_Texture->SetFormatHW(CIwImage::RGBA_8888);
-	s_Texture->SetFormatSW(CIwImage::RGBA_8888);
+    s_Texture->SetFormatHW(TEXTURE_FORMAT);
+    s_Texture->SetFormatSW(TEXTURE_FORMAT);
 	s_Texture->CopyFromBuffer(source_dimensions.x, source_dimensions.y, CIwImage::ARGB_8888, source_dimensions.x << 2, (uint8*)source, NULL);
 	s_Texture->Upload();
 
