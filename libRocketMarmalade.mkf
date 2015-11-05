@@ -1,6 +1,5 @@
 commands
 {
-	dependencies.py
 }
 
 library

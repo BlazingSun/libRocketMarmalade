@@ -5,7 +5,6 @@ includepaths
 
 commands
 {
-	dependencies.py
 }
 
 library
