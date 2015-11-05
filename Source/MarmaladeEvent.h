@@ -7,9 +7,9 @@ class MarmaladeEvent : public Rocket::Core::EventListener
 {
 public:
 	MarmaladeEvent(const Rocket::Core::String& value);
-    virtual ~MarmaladeEvent() override;
+    virtual ~MarmaladeEvent();
 
-	virtual void ProcessEvent(Rocket::Core::Event& event) override;
+	virtual void ProcessEvent(Rocket::Core::Event& event);
     /// Destroys the event.
     virtual void OnDetach(Rocket::Core::Element* element);
 private:
