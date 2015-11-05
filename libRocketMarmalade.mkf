@@ -1,3 +1,8 @@
+commands
+{
+	dependencies.py
+}
+
 library
 {
 	".,libRocketMarmalade"
