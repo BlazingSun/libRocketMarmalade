@@ -1,3 +1,0 @@
-# libRocketMarmalade
-
-WIP
