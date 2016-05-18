@@ -37,10 +37,15 @@ public:
 	/// Called by Rocket when a loaded texture is no longer required.
 	virtual void ReleaseTexture(Rocket::Core::TextureHandle texture_handle);
 
+    virtual void ResetDataCacheUsage(){ dataCacheUsage = 0; }
+
 protected:
 	CIwList<CIwTexture*> _textures;
 	CIwRect32 _scissors;
   bool _enableScissors;
+  int dataCacheSize;
+  int dataCacheUsage;
+
 };
 
 #endif

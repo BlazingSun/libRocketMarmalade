@@ -1,15 +1,33 @@
 #include "MarmaladeRenderInterfaceOpenGL.h"
 #include <Rocket/Core.h>
 #include <IwGx.h>
+#include "s3e.h"
 
 MarmaladeRenderInterfaceOpenGL::MarmaladeRenderInterfaceOpenGL()
   : _enableScissors(false)
 {
+    dataCacheSize = 0;
+    dataCacheUsage = 0;
+    s3eConfigGetInt("GX", "DataCacheSize", &dataCacheSize);
+
 }
 
 // Called by Rocket when it wants to render geometry that it does not wish to optimise.
 void MarmaladeRenderInterfaceOpenGL::RenderGeometry(Rocket::Core::Vertex* vertices, int num_vertices, int* indices, int num_indices, Rocket::Core::TextureHandle texture, const Rocket::Core::Vector2f& translation)
 {
+    int newCacheSize = (num_vertices* sizeof(CIwFVec2) + num_vertices* sizeof(CIwSVec2) + num_vertices* sizeof(CIwColour) + num_indices* sizeof(uint16) + sizeof(CIwMaterial)) *3;
+    if (newCacheSize > dataCacheSize)
+    {
+        IwAssertMsg(BC_ROCKET, false, ("Num_indices is to big. num_indices: % d num_vertices: %d DataCacheSize: %d", num_indices, num_vertices, dataCacheSize));
+        return;
+    }
+    dataCacheUsage += newCacheSize;
+    if (dataCacheUsage >= dataCacheSize)
+    {
+        IwGxFlush();
+        dataCacheUsage = num_indices;
+    }
+
 	// uvs + verts + colors
 	CIwFVec2 *uvs = texture ? IW_GX_ALLOC(CIwFVec2, num_vertices) : NULL;
 	CIwSVec2 *verts = IW_GX_ALLOC(CIwSVec2, num_vertices);
