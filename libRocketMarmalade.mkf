@@ -3,6 +3,11 @@ commands
 	dependencies.py
 }
 
+options
+{
+	cxx11
+}
+
 library
 {
 	".,libRocketMarmalade"
