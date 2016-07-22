@@ -3,6 +3,11 @@ includepaths
     ./Source
 }
 
+options
+{
+    cxx11
+}
+
 commands
 {
 	dependencies.py
