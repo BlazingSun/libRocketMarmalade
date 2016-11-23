@@ -12,7 +12,7 @@ MarmaladeEvent::~MarmaladeEvent()
 {
 }
 
-void MarmaladeEvent::ProcessEvent(Rocket::Core::Event &event)
+void MarmaladeEvent::ProcessEvent(Rocket::Core::RocketEvent &event)
 {
 	Rocket::Core::StringList list;
 	Rocket::Core::StringUtilities::ExpandString(list, _value, ';');
